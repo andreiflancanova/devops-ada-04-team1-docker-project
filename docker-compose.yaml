@@ -1,0 +1,48 @@
+services:
+  app:
+    image: node:18-alpine
+    command: sh -c "yarn install && yarn run dev"
+    ports:
+      - 80:80
+    depends_on:
+      mysql:
+        condition: service_healthy
+    secrets:
+      - team1-db-password
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: /run/secrets/team1-db-password
+      MYSQL_DB: todos
+      SERVER_PORT: 80
+    networks:
+      - team1-network
+  mysql:
+    image: mysql:8.0
+    volumes:
+      - team1-mysql-data:/var/lib/mysql
+    secrets:
+      - team1-db-password
+    environment:
+      MYSQL_DATABASE: todos
+      MYSQL_ROOT_PASSWORD: /run/secrets/team1-db-password
+    expose:
+      - 3306
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 3
+      interval: 5s
+    networks:
+      - team1-network
+volumes:
+  team1-mysql-data: 
+secrets:
+  team1-db-password:
+    file: infra/secrets.txt
+networks:
+  team1-network:
+    driver: bridge
