@@ -24,7 +24,7 @@ async function init() {
     await waitPort({ 
         host, 
         port: 3306,
-        timeout: 10000,
+        timeout: 20000,
         waitForDns: true,
     });
 
